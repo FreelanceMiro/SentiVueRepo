@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 
 const TRANSCRIBE_URL = import.meta.env.VITE_TRANSCRIBE_URL || "/transcribe";
 
