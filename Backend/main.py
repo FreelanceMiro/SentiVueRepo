@@ -28,7 +28,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Ideally restrict to your frontend domain
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,7 +43,6 @@ async def transcribe_audio(file: UploadFile = File(...)):
     buffer = io.BytesIO(audio_data)
     buffer.name = file.filename
 
-    # Transcribe audio
     try:
         transcription = client.audio.transcriptions.create(
             model="gpt-4o-transcribe",
@@ -53,7 +52,6 @@ async def transcribe_audio(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
 
-    # Summarize topic
     try:
         topic_summary = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -68,7 +66,6 @@ async def transcribe_audio(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Topic summarization error: {str(e)}")
 
-    # Get sentiment with confidence score
     try:
         sentiment_response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -86,17 +83,14 @@ async def transcribe_audio(file: UploadFile = File(...)):
         )
         sentiment_json = sentiment_response.choices[0].message.content.strip()
 
-        # Parse GPT response JSON safely
         import json
         sentiment_data = json.loads(sentiment_json)
         sentiment = sentiment_data.get("sentiment", "Neutral")
         confidence = float(sentiment_data.get("confidence", 0))
     except Exception as e:
-        # Default fallback values
         sentiment = "Neutral"
         confidence = 0.0
 
-    # Save all data to Supabase
     try:
         response = supabase.table("Transcriptions").insert({
             "transcription": text,
